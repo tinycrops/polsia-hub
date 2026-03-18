@@ -1,0 +1,563 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Polsia Hub</title>
+    <meta name="description" content="Observation dashboard for the polsia.app site inventory." />
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+
+      :root {
+        color-scheme: dark;
+        --bg: #08110f;
+        --bg2: #0e1915;
+        --panel: rgba(16, 28, 23, 0.84);
+        --panel-2: rgba(20, 33, 28, 0.92);
+        --line: rgba(197, 228, 210, 0.12);
+        --text: #e7f4eb;
+        --muted: #96b0a0;
+        --accent: #8ee3a2;
+        --accent-2: #f2c98e;
+        --danger: #f0a3a3;
+        --shadow: 0 24px 90px rgba(0, 0, 0, 0.34);
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 14% 8%, rgba(142, 227, 162, 0.10), transparent 24%),
+          radial-gradient(circle at 86% 12%, rgba(242, 201, 142, 0.08), transparent 22%),
+          linear-gradient(180deg, #07110f 0%, #0c1714 38%, #09110f 100%);
+      }
+
+      a { color: inherit; }
+      .shell {
+        width: min(1400px, calc(100vw - 28px));
+        margin: 0 auto;
+        padding: 20px 0 48px;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 28px;
+        background:
+          linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02)),
+          linear-gradient(140deg, rgba(142,227,162,0.10), rgba(20,33,28,0.95));
+        box-shadow: var(--shadow);
+      }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -80px -120px auto;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: rgba(142, 227, 162, 0.08);
+        filter: blur(16px);
+      }
+
+      .hero-top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 20px;
+      }
+
+      .eyebrow {
+        margin: 0 0 10px;
+        font-family: "IBM Plex Mono", monospace;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        font-size: 0.74rem;
+        color: var(--muted);
+      }
+
+      h1, h2, h3 {
+        margin: 0;
+        font-family: "Fraunces", Georgia, serif;
+        line-height: 0.96;
+        letter-spacing: -0.03em;
+      }
+
+      h1 {
+        font-size: clamp(3rem, 7vw, 6.4rem);
+        max-width: 10ch;
+      }
+
+      .hero-copy {
+        margin-top: 18px;
+        max-width: 66ch;
+        font-size: 1.02rem;
+        line-height: 1.65;
+        color: #d4e4d9;
+      }
+
+      .source-note {
+        margin-top: 22px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .badge {
+        border: 1px solid var(--line);
+        background: rgba(7, 17, 15, 0.54);
+        border-radius: 999px;
+        padding: 9px 13px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .badge strong {
+        color: var(--text);
+        font-weight: 600;
+      }
+
+      .panel-grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 16px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--panel);
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(10px);
+      }
+
+      .metric {
+        grid-column: span 3;
+        padding: 18px;
+      }
+
+      .metric .kicker {
+        margin: 0 0 10px;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-size: 0.72rem;
+        font-family: "IBM Plex Mono", monospace;
+      }
+
+      .metric .value {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: clamp(2rem, 3vw, 3.4rem);
+      }
+
+      .metric .sub {
+        margin-top: 6px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .controls {
+        margin-top: 18px;
+        padding: 18px;
+      }
+
+      .control-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 12px;
+      }
+
+      .control-row input {
+        width: 100%;
+        border: 1px solid rgba(197, 228, 210, 0.14);
+        border-radius: 14px;
+        background: rgba(5, 10, 9, 0.68);
+        color: var(--text);
+        padding: 13px 14px;
+        font: inherit;
+        outline: none;
+      }
+
+      .control-row input:focus {
+        border-color: rgba(142, 227, 162, 0.6);
+        box-shadow: 0 0 0 3px rgba(142, 227, 162, 0.10);
+      }
+
+      .control-row button {
+        border: 1px solid rgba(197, 228, 210, 0.16);
+        border-radius: 14px;
+        background: linear-gradient(180deg, rgba(142, 227, 162, 0.18), rgba(142, 227, 162, 0.08));
+        color: var(--text);
+        padding: 12px 16px;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      .section {
+        margin-top: 18px;
+        padding: 18px;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+      }
+
+      .section-head p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+
+      .table-wrap {
+        overflow: auto;
+        border: 1px solid rgba(197, 228, 210, 0.08);
+        border-radius: 18px;
+        background: rgba(4, 8, 7, 0.48);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1080px;
+      }
+
+      thead th {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        background: rgba(8, 17, 15, 0.98);
+        color: var(--muted);
+        text-align: left;
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-family: "IBM Plex Mono", monospace;
+        padding: 14px 14px;
+        border-bottom: 1px solid rgba(197, 228, 210, 0.08);
+      }
+
+      tbody td {
+        padding: 13px 14px;
+        vertical-align: top;
+        border-bottom: 1px solid rgba(197, 228, 210, 0.06);
+      }
+
+      tbody tr:hover {
+        background: rgba(142, 227, 162, 0.04);
+      }
+
+      .url-link {
+        text-decoration: none;
+      }
+
+      .mono {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.92rem;
+      }
+
+      .muted {
+        color: var(--muted);
+      }
+
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid rgba(197, 228, 210, 0.12);
+        border-radius: 999px;
+        padding: 5px 9px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.74rem;
+        color: var(--accent);
+        background: rgba(142, 227, 162, 0.05);
+      }
+
+      .chip.alt {
+        color: var(--accent-2);
+        background: rgba(242, 201, 142, 0.05);
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+
+      .hidden { display: none; }
+
+      @media (max-width: 1100px) {
+        .metric { grid-column: span 6; }
+        .control-row { grid-template-columns: 1fr; }
+        .hero-top { flex-direction: column; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="hero panel">
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow">Economy observation dashboard</p>
+            <h1>Polsia Hub</h1>
+            <p class="hero-copy">
+              Live inventory of every `polsia.app` website and URL observed in the derived analysis
+              database. This page is built directly from `analysis/analysis.sqlite3` and published as
+              a static LAN dashboard.
+            </p>
+            <div class="source-note">
+              <span class="badge"><strong>6,018</strong> company sites</span>
+              <span class="badge"><strong>6,770</strong> unique URLs</span>
+              <span class="badge"><strong>282,720</strong> company observation rows</span>
+              <span class="badge"><strong>565,440</strong> link observation rows</span>
+              <span class="badge">latest snapshot <strong>20260307T204349.637000Z</strong></span>
+            </div>
+          </div>
+          <div>
+            <div class="badge" style="max-width: 34ch;">
+              Full export: <span class="mono">data.json</span><br />
+              Source DB: <span class="mono">/home/ath/work/polsia-live-collector/analysis/analysis.sqlite3</span><br />
+              Generated: <span class="mono">2026-03-18 00:29 UTC</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel-grid">
+        <article class="panel metric">
+          <p class="kicker">Sites</p>
+          <div class="value" id="metric-sites">0</div>
+          <div class="sub">Distinct company app URLs under `polsia.app`.</div>
+        </article>
+        <article class="panel metric">
+          <p class="kicker">URLs</p>
+          <div class="value" id="metric-urls">0</div>
+          <div class="sub">Combined company and link URLs after dedupe.</div>
+        </article>
+        <article class="panel metric">
+          <p class="kicker">Path Rows</p>
+          <div class="value" id="metric-paths">0</div>
+          <div class="sub">Non-root URL observations across the host set.</div>
+        </article>
+        <article class="panel metric">
+          <p class="kicker">Hosts</p>
+          <div class="value" id="metric-hosts">0</div>
+          <div class="sub">Unique `polsia.app` hostnames in the inventory.</div>
+        </article>
+      </section>
+
+      <section class="panel controls">
+        <div class="control-row">
+          <input id="site-search" type="search" placeholder="Search sites by name, slug, host, or URL" />
+          <input id="url-search" type="search" placeholder="Search URLs, labels, or titles" />
+          <button id="reset-filters" type="button">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel section">
+        <div class="section-head">
+          <div>
+            <h2>Site Inventory</h2>
+            <p>One row per company app URL. Sorted by observation volume.</p>
+          </div>
+          <p id="site-count" class="mono"></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Site</th>
+                <th>URL</th>
+                <th>Names</th>
+                <th>Slugs</th>
+                <th>Seen</th>
+                <th>Evidence</th>
+                <th>Host Surface</th>
+              </tr>
+            </thead>
+            <tbody id="sites-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel section">
+        <div class="section-head">
+          <div>
+            <h2>URL Inventory</h2>
+            <p>Combined company and link URLs. Use the URL search field to filter.</p>
+          </div>
+          <p id="url-count" class="mono"></p>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>URL</th>
+                <th>Kind</th>
+                <th>Names / Titles</th>
+                <th>Seen</th>
+                <th>Observations</th>
+              </tr>
+            </thead>
+            <tbody id="urls-body"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <p class="footer">
+        The dashboard source is `analysis/polsia_hub/build_site.py`. Rebuild it from the derived
+        SQLite corpus, then serve the output directory on the LAN.
+      </p>
+    </div>
+
+    <script>
+      const DATA_URL = 'data.json';
+      let DATA = null;
+      const siteBody = document.getElementById('sites-body');
+      const urlBody = document.getElementById('urls-body');
+      const siteSearch = document.getElementById('site-search');
+      const urlSearch = document.getElementById('url-search');
+      const resetButton = document.getElementById('reset-filters');
+
+      function textOf(values) {
+        if (!values || !values.length) return '';
+        return values.join(' | ');
+      }
+
+      function fmtSeen(firstSeen, lastSeen) {
+        return firstSeen + '<br><span class="muted mono">' + lastSeen + '</span>';
+      }
+
+      function siteMatches(item, term) {
+        if (!term) return true;
+        const haystack = [
+          item.label,
+          item.host,
+          item.root_url,
+          textOf(item.names),
+          textOf(item.slugs),
+          textOf(item.sample_urls),
+          textOf(item.sample_paths)
+        ].join(' ').toLowerCase();
+        return haystack.indexOf(term) !== -1;
+      }
+
+      function urlMatches(item, term) {
+        if (!term) return true;
+        const haystack = [
+          item.canonical_url,
+          item.kind,
+          textOf(item.names),
+          textOf(item.titles),
+          textOf(item.company_labels)
+        ].join(' ').toLowerCase();
+        return haystack.indexOf(term) !== -1;
+      }
+
+      function renderSites(term) {
+        const rows = DATA.sites.filter(function(item) { return siteMatches(item, term); });
+        document.getElementById('site-count').textContent = rows.length + ' matching sites';
+        const limit = rows.length;
+        const html = rows.slice(0, limit).map(function(item) {
+          const names = textOf(item.names) || item.label;
+          const slugs = textOf(item.slugs) || '—';
+          const surface = [
+            '<span class="chip">' + item.url_count + ' URLs</span>',
+            '<span class="chip alt">' + item.path_count + ' paths</span>'
+          ].join('');
+          const samplePaths = item.sample_paths.length ? '<div class="chips" style="margin-top:8px;">' + item.sample_paths.slice(0, 4).map(function(path) {
+            return '<span class="chip alt">' + path + '</span>';
+          }).join('') + '</div>' : '<span class="muted">No extra paths</span>';
+          return [
+            '<tr>',
+            '<td><div><a class="url-link" href="' + item.root_url + '" target="_blank" rel="noreferrer"><strong>' + item.label + '</strong></a></div><div class="muted mono">' + item.host + '</div></td>',
+            '<td class="mono"><a class="url-link" href="' + item.root_url + '" target="_blank" rel="noreferrer">' + item.root_url + '</a></td>',
+            '<td>' + names + '</td>',
+            '<td class="mono">' + slugs + '</td>',
+            '<td class="mono">' + fmtSeen(item.first_seen, item.last_seen) + '</td>',
+            '<td><span class="chip">' + item.observations + '</span><span class="chip alt">' + item.company_count + ' companies</span></td>',
+            '<td>' + surface + samplePaths + '</td>',
+            '</tr>'
+          ].join('');
+        }).join('');
+        siteBody.innerHTML = html;
+      }
+
+      function renderUrls(term) {
+        const rows = DATA.urls.filter(function(item) { return urlMatches(item, term); });
+        document.getElementById('url-count').textContent = rows.length + ' matching URLs';
+        const limit = term ? rows.length : Math.min(rows.length, 300);
+        const html = rows.slice(0, limit).map(function(item) {
+          const names = textOf(item.names);
+          const titles = textOf(item.titles);
+          const labels = textOf(item.company_labels);
+          const meta = [names, titles, labels].filter(Boolean).join(' | ') || '—';
+          return [
+            '<tr>',
+            '<td class="mono"><a class="url-link" href="' + item.canonical_url + '" target="_blank" rel="noreferrer">' + item.canonical_url + '</a><div class="muted">' + item.host + '</div></td>',
+            '<td><span class="chip">' + item.kind + '</span></td>',
+            '<td>' + meta + '</td>',
+            '<td class="mono">' + fmtSeen(item.first_seen, item.last_seen) + '</td>',
+            '<td><span class="chip">' + item.observations + '</span></td>',
+            '</tr>'
+          ].join('');
+        }).join('');
+        if (!term && rows.length > limit) {
+          urlBody.innerHTML = html + '<tr><td colspan="5" class="muted">Showing top ' + limit + ' rows. Search to filter the full inventory.</td></tr>';
+        } else {
+          urlBody.innerHTML = html;
+        }
+      }
+
+      function renderMetrics() {
+        document.getElementById('metric-sites').textContent = DATA.sites.length.toLocaleString();
+        document.getElementById('metric-urls').textContent = DATA.urls.length.toLocaleString();
+        document.getElementById('metric-paths').textContent = DATA.summary.path_count.toLocaleString();
+        document.getElementById('metric-hosts').textContent = DATA.summary.host_count.toLocaleString();
+      }
+
+      function applyFilters() {
+        const siteTerm = siteSearch.value.trim().toLowerCase();
+        const urlTerm = urlSearch.value.trim().toLowerCase();
+        renderSites(siteTerm);
+        renderUrls(urlTerm);
+      }
+
+      siteSearch.addEventListener('input', applyFilters);
+      urlSearch.addEventListener('input', applyFilters);
+      resetButton.addEventListener('click', function() {
+        siteSearch.value = '';
+        urlSearch.value = '';
+        applyFilters();
+      });
+
+      fetch(DATA_URL)
+        .then(function(resp) { return resp.json(); })
+        .then(function(data) {
+          DATA = data;
+          renderMetrics();
+          applyFilters();
+        })
+        .catch(function(err) {
+          siteBody.innerHTML = '<tr><td colspan="7">Failed to load data.json: ' + err + '</td></tr>';
+          urlBody.innerHTML = '<tr><td colspan="5">Failed to load data.json: ' + err + '</td></tr>';
+        });
+    </script>
+  </body>
+</html>
